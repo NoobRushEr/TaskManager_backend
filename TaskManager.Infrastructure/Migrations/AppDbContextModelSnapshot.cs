@@ -24,17 +24,19 @@ namespace TaskManager.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskManager.Domain.Entities.Category", b =>
                 {
-                    b.Property<Guid>("Category_Id")
+                    b.Property<int>("Category_Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Category_Id"));
 
                     b.Property<string>("CategoryName")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("UserId")
+                    b.Property<int?>("UserId")
                         .IsRequired()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
                     b.HasKey("Category_Id");
 
@@ -45,12 +47,14 @@ namespace TaskManager.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskManager.Domain.Entities.Task", b =>
                 {
-                    b.Property<Guid>("Task_Id")
+                    b.Property<int>("Task_Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uuid");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Task_Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -74,8 +78,8 @@ namespace TaskManager.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Task_Id");
 
@@ -88,9 +92,11 @@ namespace TaskManager.Infrastructure.Migrations
 
             modelBuilder.Entity("TaskManager.Domain.Entities.User", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Email")
                         .IsRequired()

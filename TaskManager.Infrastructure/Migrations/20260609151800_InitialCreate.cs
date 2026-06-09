@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -15,7 +16,8 @@ namespace TaskManager.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: true),
                     Email = table.Column<string>(type: "text", nullable: false),
@@ -31,9 +33,10 @@ namespace TaskManager.Infrastructure.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Category_Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Category_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CategoryName = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: true)
+                    UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -50,7 +53,8 @@ namespace TaskManager.Infrastructure.Migrations
                 name: "Tasks",
                 columns: table => new
                 {
-                    Task_Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Task_Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -58,8 +62,8 @@ namespace TaskManager.Infrastructure.Migrations
                     DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    CategoryId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
