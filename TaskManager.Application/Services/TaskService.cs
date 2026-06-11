@@ -12,50 +12,48 @@ public class TaskService : ITaskService
     public TaskService(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
+
     }
 
-    // Implement service methods that use _taskRepository to perform operations
 
     public async Task<IEnumerable<TaskResponseDto>> GetAllTasksAsync()
     {
-        var tasks = await _taskRepository.GetAllTasksAsync();
+        var tasks = await _taskRepository.GetAllAsync();
 
         if (tasks == null || !tasks.Any())
         {
             return Enumerable.Empty<TaskResponseDto>();
         }
-
-        // Map tasks to TaskResponseDto and return
-        return tasks.Select(t => new TaskResponseDto
+        return tasks.Select(task => new TaskResponseDto
         {
-            Id = t.Task_Id,
-            Title = t.Title,
-            Description = t.Description,
-            DueDate = t.DueDate,
-            CategoryId = t.CategoryId,
-            CategoryName = t.Category?.CategoryName,
-            UserId = t.UserId
+            TaskId = task!.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            DueDate = task.DueDate,
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
         });
     }
 
     public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
     {
-        var task = await _taskRepository.GetTaskByIdAsync(id);
+        var task = await _taskRepository.GetByIdAsync(id);
         if (task == null) return null;
 
         return new TaskResponseDto
         {
-            Id = task.Task_Id,
+            TaskId = task.Task_Id,
             Title = task.Title,
             Description = task.Description,
+            CreatedAt = task.CreatedAt,
             DueDate = task.DueDate,
             CategoryId = task.CategoryId,
-            CategoryName = task.Category?.CategoryName,
             UserId = task.UserId
         };
     }
 
-    public async Task<CreateTaskDto> CreateTaskAsync(CreateTaskDto createTaskDto)
+    public async Task<TaskResponseDto> CreateTaskAsync(int userId, CreateTaskDto createTaskDto)
     {
         if (createTaskDto == null) throw new ArgumentNullException(nameof(createTaskDto));
 
@@ -64,15 +62,25 @@ public class TaskService : ITaskService
             Title = createTaskDto.Title,
             Description = createTaskDto.Description,            
             DueDate = createTaskDto.DueDate,
-            CategoryId = createTaskDto.CategoryId
+            CategoryId = createTaskDto.CategoryId,
+            UserId = userId
         };
-        await _taskRepository.CreateTaskAsync(task);
-        return createTaskDto;
+        await _taskRepository.AddAsync(task);
+        return new TaskResponseDto
+        {
+            TaskId = task.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            DueDate = task.DueDate,
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
+        };
     }
 
-    public async Task UpdateTaskAsync(int id, UpdateTaskDto updateTaskDto)
+    public async Task<TaskResponseDto> UpdateTaskAsync(int id, UpdateTaskDto updateTaskDto)
     {
-        var existingTask = await _taskRepository.GetTaskByIdAsync(id);
+        var existingTask = await _taskRepository.GetByIdAsync(id);
         if (existingTask == null) throw new Exception("Task not found");
 
         existingTask.Title = updateTaskDto.Title ?? existingTask.Title;
@@ -80,12 +88,52 @@ public class TaskService : ITaskService
         existingTask.DueDate = updateTaskDto.DueDate ?? existingTask.DueDate;
         existingTask.CategoryId = updateTaskDto.CategoryId ?? existingTask.CategoryId;
 
-        await _taskRepository.UpdateTaskAsync(existingTask);
+        await _taskRepository.UpdateAsync(existingTask);
+        return new TaskResponseDto
+        {
+            TaskId = existingTask.Task_Id,
+            Title = existingTask.Title,
+            Description = existingTask.Description,
+            CreatedAt = existingTask.CreatedAt,
+            DueDate = existingTask.DueDate,
+            CategoryId = existingTask.CategoryId,
+            UserId = existingTask.UserId
+        };
     }
 
     public async Task DeleteTaskAsync(int id)
     {
-        await _taskRepository.DeleteTaskAsync(id);
+        await _taskRepository.DeleteAsync(id);
+    }
+
+    public async Task<IEnumerable<TaskResponseDto>> GetCompleteTaskstAsync()
+    {
+        var tasks = await _taskRepository.GetCompleteTaskListAsync();
+        return tasks.Select(task => new TaskResponseDto
+        {
+            TaskId = task.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            DueDate = task.DueDate,
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
+        });
+    }
+
+    public async Task<IEnumerable<TaskResponseDto>> GetTasksByUserIdAsync(int userId)
+    {
+        var tasks = await _taskRepository.GetTasksByUserAsync(userId);
+        return tasks.Select(task => new TaskResponseDto
+        {
+            TaskId = task.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            DueDate = task.DueDate,
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
+        });
     }
 
 }

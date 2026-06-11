@@ -11,6 +11,7 @@ public class TaskItem
     public int Task_Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
     public DateTime? CompletedAt { get; set; }
     public DateTime? DueDate { get; set; }
     public Priority_? Priority { get; set; }

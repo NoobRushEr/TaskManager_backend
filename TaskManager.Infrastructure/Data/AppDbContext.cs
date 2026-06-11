@@ -37,7 +37,7 @@ public class AppDbContext : DbContext
             entity.Property(t => t.CategoryId).HasColumnName("category_id").IsRequired(false);
 
             // Shadow property for CreatedAt with default value
-            entity.Property<DateTime>("CreatedAt").HasDefaultValueSql("NOW()");
+            entity.Property<DateTime>("CreatedAt").HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -80,6 +80,7 @@ public class AppDbContext : DbContext
             .HasOne(c => c.User)
             .WithMany(u => u.Categories)
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
     }
 }

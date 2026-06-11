@@ -11,7 +11,7 @@ public class Category
     [Required]
     public required string CategoryName { get; set; }
 
-    public int? UserId { get; set; } = null;
+    public int? UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public User? User { get; set; }

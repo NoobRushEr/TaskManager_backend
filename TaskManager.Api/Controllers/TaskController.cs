@@ -37,20 +37,20 @@ namespace TaskManager.Api.Controllers
             return Ok(task);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> CreateTask([FromBody] CreateTaskDto createTaskDto)
+        [HttpPost("{userId}")]
+        public async Task<ActionResult<TaskResponseDto>> CreateTask(int userId, [FromBody] CreateTaskDto createTaskDto)
         {
             if (createTaskDto == null) throw new ArgumentNullException(nameof(createTaskDto));
 
-            await _taskService.CreateTaskAsync(createTaskDto);
-            return CreatedAtAction(nameof(GetAllTasks), createTaskDto);
+            TaskResponseDto createdTask = await _taskService.CreateTaskAsync(userId, createTaskDto);
+            return CreatedAtAction(nameof(GetAllTasks), new { id = createdTask.TaskId }, createdTask);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTask(int id, [FromBody] UpdateTaskDto updateTaskDto)
+        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] UpdateTaskDto updateTaskDto)
         {
-            await _taskService.UpdateTaskAsync(id,updateTaskDto);
-            return NoContent();
+            TaskResponseDto updatedTask = await _taskService.UpdateTaskAsync(id, updateTaskDto);
+            return CreatedAtAction(nameof(GetTaskById), new { id = updatedTask.TaskId }, updatedTask);
         }
 
         [HttpDelete("{id}")]
@@ -58,6 +58,20 @@ namespace TaskManager.Api.Controllers
         {
             await _taskService.DeleteTaskAsync(id);
             return NoContent();
+        }
+
+        [HttpGet("complete")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetCompleteTasks()
+        {
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetCompleteTaskstAsync();
+            return Ok(tasks);
+        }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksByUserId(int userId)
+        {
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetTasksByUserIdAsync(userId);
+            return Ok(tasks);
         }
     }
 }
