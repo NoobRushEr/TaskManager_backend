@@ -51,10 +51,12 @@ namespace TaskManager.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<UserResponseDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto)
         {
-            if (updateUserDto == null) throw new ArgumentNullException(nameof(updateUserDto));
-
             var updatedUser = await _userService.UpdateUserAsync(id, updateUserDto);
-            return CreatedAtAction(nameof(GetUserById), new { id = updatedUser.Id }, updatedUser);
+            if (updatedUser == null)
+            {
+                return NotFound();
+            }
+            return Ok(updatedUser);
         }
 
         [HttpDelete("{id}")]

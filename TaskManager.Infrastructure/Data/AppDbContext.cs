@@ -36,8 +36,7 @@ public class AppDbContext : DbContext
             entity.Property(t => t.UserId).HasColumnName("user_id").IsRequired();
             entity.Property(t => t.CategoryId).HasColumnName("category_id").IsRequired(false);
 
-            // Shadow property for CreatedAt with default value
-            entity.Property<DateTime>("CreatedAt").HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();
+            entity.Property(t => t.CreatedAt).HasColumnName("created_at").HasDefaultValueSql("NOW()").ValueGeneratedOnAdd();
         });
 
         modelBuilder.Entity<User>(entity =>

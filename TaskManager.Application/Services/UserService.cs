@@ -69,12 +69,12 @@ namespace TaskManager.Application.Services
             };
         }
 
-        public async Task<UserResponseDto> UpdateUserAsync(int id, UpdateUserDto updateUserDto)
+        public async Task<UserResponseDto?> UpdateUserAsync(int id, UpdateUserDto updateUserDto)
         {
             if (updateUserDto == null) throw new ArgumentNullException(nameof(updateUserDto));
 
             var existingUser = await _userRepository.GetByIdAsync(id);
-            if (existingUser == null) throw new Exception("User not found");
+            if (existingUser == null) return null;
 
             existingUser.FirstName = updateUserDto.FirstName ?? existingUser.FirstName;
             existingUser.LastName = updateUserDto.LastName ?? existingUser.LastName;

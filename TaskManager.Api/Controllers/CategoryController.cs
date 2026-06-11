@@ -51,7 +51,7 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(int id, [FromBody] string categoryName)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto updateCategoryDto)
         {
             if (!ModelState.IsValid)
             {
@@ -63,7 +63,7 @@ namespace TaskManager.Api.Controllers
             {
                 return NotFound();
             }
-            await _categoryService.UpdateCategoryAsync(id, categoryName);
+            await _categoryService.UpdateCategoryAsync(id, updateCategoryDto);
             return NoContent();
         }
 

@@ -10,13 +10,19 @@ namespace TaskManager.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.RenameColumn(
+                name: "CreatedAt",
+                table: "tasks",
+                newName: "created_at");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-
+            migrationBuilder.RenameColumn(
+                name: "created_at",
+                table: "tasks",
+                newName: "CreatedAt");
         }
     }
 }

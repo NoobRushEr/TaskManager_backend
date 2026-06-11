@@ -22,7 +22,7 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<IEnumerable<T?>> GetAllAsync()
         {
-            return await Task.FromResult(_dbSet.AsNoTracking().AsEnumerable());
+            return await _dbSet.AsNoTracking().ToListAsync();
         }
 
         public async Task<T?> GetByIdAsync(int id)

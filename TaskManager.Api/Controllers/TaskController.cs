@@ -43,14 +43,18 @@ namespace TaskManager.Api.Controllers
             if (createTaskDto == null) throw new ArgumentNullException(nameof(createTaskDto));
 
             TaskResponseDto createdTask = await _taskService.CreateTaskAsync(userId, createTaskDto);
-            return CreatedAtAction(nameof(GetAllTasks), new { id = createdTask.TaskId }, createdTask);
+            return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.TaskId }, createdTask);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] UpdateTaskDto updateTaskDto)
         {
-            TaskResponseDto updatedTask = await _taskService.UpdateTaskAsync(id, updateTaskDto);
-            return CreatedAtAction(nameof(GetTaskById), new { id = updatedTask.TaskId }, updatedTask);
+            TaskResponseDto? updatedTask = await _taskService.UpdateTaskAsync(id, updateTaskDto);
+            if (updatedTask == null)
+            {
+                return NotFound();
+            }
+            return Ok(updatedTask);
         }
 
         [HttpDelete("{id}")]
@@ -63,7 +67,7 @@ namespace TaskManager.Api.Controllers
         [HttpGet("complete")]
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetCompleteTasks()
         {
-            IEnumerable<TaskResponseDto> tasks = await _taskService.GetCompleteTaskstAsync();
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetCompletedTasksAsync();
             return Ok(tasks);
         }
 

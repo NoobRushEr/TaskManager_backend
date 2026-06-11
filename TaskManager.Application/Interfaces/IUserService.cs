@@ -13,7 +13,7 @@ namespace TaskManager.Application.Interfaces
         Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
         Task<UserResponseDto?> GetUserByIdAsync(int id);
         Task<UserResponseDto> CreateUserAsync(CreateUserDto createUserDto);
-        Task<UserResponseDto> UpdateUserAsync(int id, UpdateUserDto updateUserDto);
+        Task<UserResponseDto?> UpdateUserAsync(int id, UpdateUserDto updateUserDto);
         Task DeleteUserAsync(int id);
         Task<IEnumerable<CategoryResponseDto>> GetCategoriesByUserIdAsync(int userId);
 

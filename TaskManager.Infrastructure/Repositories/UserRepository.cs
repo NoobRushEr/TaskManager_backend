@@ -15,12 +15,11 @@ namespace TaskManager.Infrastructure.Repositories
 
         public async Task<IEnumerable<User>> GetCategoriesByUserAsync(int userId)
         {
-            return await Task.FromResult(
-                _dbSet
+            return await _dbSet
                 .Include(u => u.Categories)
                 .Where(u => u.Id == userId)
                 .AsNoTracking()
-                .ToList());
+                .ToListAsync();
         }
 
         public async Task<User?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId)
@@ -31,9 +30,8 @@ namespace TaskManager.Infrastructure.Repositories
                     .ThenInclude(c => c.Tasks)
                     .Where(u => u.Id == userId)
                     .Where(u => u.Categories.Any(c => c.Tasks.Any(t => t.Task_Id == taskId)))
+                    .AsNoTracking()
                     .FirstOrDefaultAsync();
-
-            Console.WriteLine($"User with ID {userId} and Task ID {taskId}: {(user != null ? "Found" : "Not Found")}");
 
 
             if (user == null) return null;
