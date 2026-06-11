@@ -71,6 +71,7 @@ namespace TaskManager.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
                     b.Property<string>("Description")
