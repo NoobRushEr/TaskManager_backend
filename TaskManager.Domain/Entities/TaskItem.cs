@@ -5,25 +5,25 @@ using TaskManager.Domain.Enums;
 
 namespace TaskManager.Domain.Entities;
 
-public class Task
+public class TaskItem
 {
-    [Key]
-    public Guid Task_Id { get; set; }
+    [Key] 
+    public int Task_Id { get; set; }
     public required string Title { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime CompletedAt { get; set; }
-    public DateTime DueDate { get; set; }
-    public Priority_ Priority { get; set; }
-    public Status_ Status { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public DateTime? DueDate { get; set; }
+    public Priority_? Priority { get; set; }
+    public Status_? Status { get; set; }
 
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
     [ForeignKey(nameof(UserId))]
     public User? User { get; set; }
 
 
-    public Guid CategoryId { get; set; }
+    public int? CategoryId { get; set; }
 
     [ForeignKey(nameof(CategoryId))]
     public Category? Category { get; set; }
