@@ -13,7 +13,7 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
     public async Task<IEnumerable<TaskItem>> GetCompleteTaskListAsync()
     {
         return await _context.Tasks.
-                    Where(t => t.CompletedAt.HasValue && t.CompletedAt <= DateTime.UtcNow).
+                    Where(t => t.CompletedAt.HasValue).
                     OrderBy(t => t.DueDate).
                     ToListAsync();
     }

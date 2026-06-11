@@ -63,6 +63,8 @@ namespace TaskManager.Application.Services
 
         public async Task UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto)
         {
+            if (updateCategoryDto == null) throw new ArgumentNullException(nameof(updateCategoryDto));
+
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with id {id} not found.");
 
