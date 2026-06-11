@@ -26,6 +26,14 @@ namespace TaskManager.Api.Controllers
             return Ok(tasks);
         }
 
+        [HttpGet("paged")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            IEnumerable<TaskResponseDto?> tasks = await _taskService.GetTasksPaginatedAsync(page, pageSize);
+            return Ok(tasks);
+        }
+        
+
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskResponseDto>> GetTaskById(int id)
         {

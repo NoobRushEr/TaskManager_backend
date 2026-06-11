@@ -39,6 +39,28 @@ public class TaskService : ITaskService
             UserId = task.UserId
         });
     }
+    
+    public async Task<IEnumerable<TaskResponseDto>> GetTasksPaginatedAsync(int page, int pageSize)
+    {
+        var tasks = await _taskRepository.GetTasksPaginatedAsync(page, pageSize);
+
+        if (tasks == null || !tasks.Any())
+        {
+            return Enumerable.Empty<TaskResponseDto>();
+        }
+        
+        return tasks.Select(task => new TaskResponseDto
+        {
+            TaskId = task!.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            DueDate = task.DueDate,
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
+        });
+    }
+
 
     public async Task<TaskResponseDto?> GetTaskByIdAsync(int id)
     {
