@@ -61,12 +61,14 @@ namespace TaskManager.Application.Services
             };
         }
 
-        public async Task UpdateCategoryAsync(int id, string categoryName)
+        public async Task UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto)
         {
+            if (updateCategoryDto == null) throw new ArgumentNullException(nameof(updateCategoryDto));
+
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with id {id} not found.");
 
-            category.CategoryName = categoryName;
+            category.CategoryName = updateCategoryDto.CategoryName;
             await _categoryRepository.UpdateAsync(category);
         }
 
@@ -86,7 +88,11 @@ namespace TaskManager.Application.Services
                 TaskId = task.Task_Id,
                 Title = task.Title,
                 Description = task.Description,
+                CreatedAt = task.CreatedAt,
+                CompletedAt = task.CompletedAt,
                 DueDate = task.DueDate,
+                Priority = task.Priority?.ToString(),
+                Status = task.Status?.ToString(),
                 CategoryId = task.CategoryId,
                 UserId = task.UserId
             });

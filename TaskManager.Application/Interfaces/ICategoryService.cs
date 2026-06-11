@@ -12,7 +12,7 @@ namespace TaskManager.Application.Interfaces
         Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync();
         Task<CategoryResponseDto?> GetCategoryByIdAsync(int id);
         Task<CategoryResponseDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto);
-        Task UpdateCategoryAsync(int id, string categoryName);
+        Task UpdateCategoryAsync(int id, UpdateCategoryDto updateCategoryDto);
         Task DeleteCategoryAsync(int id);
         Task<IEnumerable<TaskResponseDto>> GetTasksByCategoryIdAsync(int categoryId);
     }
