@@ -51,5 +51,10 @@ namespace TaskManager.Infrastructure.Repositories
             return user;
 
         }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+        }
     }
 }

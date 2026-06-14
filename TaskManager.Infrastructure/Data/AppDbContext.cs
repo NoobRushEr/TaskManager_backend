@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using TaskManager.Domain.Entities;
 using TaskManager.Domain.Enums;
 
@@ -48,6 +49,24 @@ public class AppDbContext : DbContext
             entity.Property(u => u.LastName).HasColumnName("last_name").HasMaxLength(50);
             entity.Property(u => u.Email).HasColumnName("email").IsRequired().HasMaxLength(100);
         });
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+
+        var rolesComparer = new ValueComparer<List<Role_>>(
+            (c1, c2) => c1!.SequenceEqual(c2!), // Compares the actual elements in the lists to check if they match
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())), // Generates a clean hash code based on elements
+            c => c.ToList() // Creates a shallow copy snapshot for tracking comparison
+        );
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.Roles)
+            .HasConversion(
+                v => string.Join(',', v.Select(r => r.ToString())), // Convert List<Role_> to comma-separated string
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(r => Enum.Parse<Role_>(r)).ToList() // Convert comma-separated string back to List<Role_>
+            )
+            .Metadata.SetValueComparer(rolesComparer);
 
         modelBuilder.Entity<Category>(entity =>
         {

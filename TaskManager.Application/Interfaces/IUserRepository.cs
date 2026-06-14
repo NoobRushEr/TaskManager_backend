@@ -11,5 +11,7 @@ namespace TaskManager.Application.Interfaces
         Task<IEnumerable<User>> GetCategoriesByUserAsync(int userId);
 
         Task<User?> GetTaskByUserIdAndTaskIdAsync(int userId, int taskId);
+
+        Task<User?> GetUserByEmailAsync(string email);
     }
 }

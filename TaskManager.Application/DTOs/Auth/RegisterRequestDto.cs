@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using TaskManager.Domain.Enums;
 
-namespace TaskManager.Application.DTOs.User
+namespace TaskManager.Application.DTOs.Auth
 {
-    public class CreateUserDto
+    public class RegisterRequestDto
     {
         public required string FirstName { get; set; }
         public string? LastName { get; set; }

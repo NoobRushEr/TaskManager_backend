@@ -49,25 +49,6 @@ namespace TaskManager.Application.Services
             };
         }
 
-        public async Task<UserResponseDto> CreateUserAsync(CreateUserDto createUserDto)
-        {
-            if (createUserDto == null) throw new ArgumentNullException(nameof(createUserDto));
-
-            var user = new User
-            {
-                FirstName = createUserDto.FirstName,
-                LastName = createUserDto.LastName,
-                Email = createUserDto.Email
-            };
-            await _userRepository.AddAsync(user);
-            return new UserResponseDto
-            {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email
-            };
-        }
 
         public async Task<UserResponseDto?> UpdateUserAsync(int id, UpdateUserDto updateUserDto)
         {

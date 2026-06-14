@@ -39,14 +39,6 @@ namespace TaskManager.Api.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] CreateUserDto createUserDto)
-        {
-            if (createUserDto == null) throw new ArgumentNullException(nameof(createUserDto));
-
-            var createdUser = await _userService.CreateUserAsync(createUserDto);
-            return CreatedAtAction(nameof(GetUserById), new { id = createdUser.Id }, createdUser);
-        }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<UserResponseDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateUserDto)
