@@ -8,6 +8,6 @@ namespace TaskManager.Application.Interfaces
 {
     public interface IJwtTokenGenerator
     {
-        public string GenerateToken(string firstName, string email, List<Role_> roles);
+        public string GenerateToken(int userId, string firstName, string email, List<Role_> roles);
     }
 }

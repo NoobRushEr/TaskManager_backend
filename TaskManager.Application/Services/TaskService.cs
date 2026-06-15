@@ -141,8 +141,16 @@ public class TaskService : ITaskService
         };
     }
 
-    public async Task DeleteTaskAsync(int id)
+    public async Task DeleteTaskAsync(int id, int userId, bool isAdmin)
     {
+        var task = await _taskRepository.GetByIdAsync(id);
+        if (task == null) return;
+
+        if (!isAdmin && task.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You are not the owner of this task.");
+        }
+
         await _taskRepository.DeleteAsync(id);
     }
 
@@ -167,6 +175,24 @@ public class TaskService : ITaskService
     public async Task<IEnumerable<TaskResponseDto>> GetTasksByUserIdAsync(int userId)
     {
         var tasks = await _taskRepository.GetTasksByUserAsync(userId);
+        return tasks.Select(task => new TaskResponseDto
+        {
+            TaskId = task.Task_Id,
+            Title = task.Title,
+            Description = task.Description,
+            CreatedAt = task.CreatedAt,
+            CompletedAt = task.CompletedAt,
+            DueDate = task.DueDate,
+            Priority = task.Priority?.ToString(),
+            Status = task.Status?.ToString(),
+            CategoryId = task.CategoryId,
+            UserId = task.UserId
+        });
+    }
+
+    public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId)
+    {
+        var tasks = await _taskRepository.GetMyTasksAsync(userId);
         return tasks.Select(task => new TaskResponseDto
         {
             TaskId = task.Task_Id,

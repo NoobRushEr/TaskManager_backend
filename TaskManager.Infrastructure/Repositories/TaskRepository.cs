@@ -34,4 +34,12 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
                     OrderBy(t => t.DueDate).
                     ToListAsync();
     }
+
+    public async Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId)
+    {
+        return await _context.Tasks.
+                    Where(t => t.UserId == userId).
+                    OrderBy(t => t.DueDate).
+                    ToListAsync();
+    }
 }

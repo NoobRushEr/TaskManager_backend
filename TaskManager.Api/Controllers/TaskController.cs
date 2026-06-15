@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs.Task;
+using TaskManager.Application.Extensions;
 using TaskManager.Application.Interfaces;
 
 namespace TaskManager.Api.Controllers
@@ -20,13 +22,16 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetAllTasks()
         {
             IEnumerable<TaskResponseDto?> tasks = await _taskService.GetAllTasksAsync();
             return Ok(tasks);
         }
 
+
         [HttpGet("paged")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksPaginated([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             IEnumerable<TaskResponseDto?> tasks = await _taskService.GetTasksPaginatedAsync(page, pageSize);
@@ -35,6 +40,7 @@ namespace TaskManager.Api.Controllers
         
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult<TaskResponseDto>> GetTaskById(int id)
         {
             TaskResponseDto? task = await _taskService.GetTaskByIdAsync(id);
@@ -45,19 +51,25 @@ namespace TaskManager.Api.Controllers
             return Ok(task);
         }
 
-        [HttpPost("{userId}")]
-        public async Task<ActionResult<TaskResponseDto>> CreateTask(int userId, [FromBody] CreateTaskDto createTaskDto)
+
+        
+        [HttpPost]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<TaskResponseDto>> CreateTask( [FromBody] CreateTaskDto createTaskDto)
         {
             if (createTaskDto == null) throw new ArgumentNullException(nameof(createTaskDto));
+            
+            int userId = User.GetUserId();
 
             TaskResponseDto createdTask = await _taskService.CreateTaskAsync(userId, createTaskDto);
             return CreatedAtAction(nameof(GetTaskById), new { id = createdTask.TaskId }, createdTask);
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int id, [FromBody] UpdateTaskDto updateTaskDto)
+        [HttpPut("{task_id}")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<TaskResponseDto>> UpdateTask(int task_id, [FromBody] UpdateTaskDto updateTaskDto)
         {
-            TaskResponseDto? updatedTask = await _taskService.UpdateTaskAsync(id, updateTaskDto);
+            TaskResponseDto? updatedTask = await _taskService.UpdateTaskAsync(task_id, updateTaskDto);
             if (updatedTask == null)
             {
                 return NotFound();
@@ -65,14 +77,18 @@ namespace TaskManager.Api.Controllers
             return Ok(updatedTask);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTask(int id)
+        [HttpDelete("{task_id}")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult> DeleteTask(int task_id)
         {
-            await _taskService.DeleteTaskAsync(id);
+            int userId = User.GetUserId();
+            bool isAdmin = User.IsInRole("Admin") ? true : false;
+            await _taskService.DeleteTaskAsync(task_id, userId, isAdmin);
             return NoContent();
         }
 
         [HttpGet("complete")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetCompleteTasks()
         {
             IEnumerable<TaskResponseDto> tasks = await _taskService.GetCompletedTasksAsync();
@@ -80,9 +96,19 @@ namespace TaskManager.Api.Controllers
         }
 
         [HttpGet("user/{userId}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksByUserId(int userId)
         {
             IEnumerable<TaskResponseDto> tasks = await _taskService.GetTasksByUserIdAsync(userId);
+            return Ok(tasks);
+        }
+
+        [HttpGet("MyTasks")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetMyTasks()
+        {
+            int userId = User.GetUserId();
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId);
             return Ok(tasks);
         }
     }

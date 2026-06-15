@@ -10,8 +10,9 @@ public interface ITaskService
     Task<TaskResponseDto?> GetTaskByIdAsync(int id);
     Task<TaskResponseDto> CreateTaskAsync(int userId, CreateTaskDto createTaskDto);
     Task<TaskResponseDto?> UpdateTaskAsync(int id, UpdateTaskDto updateTaskDto);
-    Task DeleteTaskAsync(int id);
+    Task DeleteTaskAsync(int id, int userId, bool isAdmin);
     
     Task<IEnumerable<TaskResponseDto>> GetCompletedTasksAsync();
     Task<IEnumerable<TaskResponseDto>> GetTasksByUserIdAsync(int userId);
+    Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId);
 }

@@ -22,10 +22,11 @@ namespace TaskManager.Infrastructure
             _configuration = configuration;
         }
 
-        public string GenerateToken(string firstName, string email, List<Role_> roles)
+        public string GenerateToken(int userId, string firstName, string email, List<Role_> roles)
         {
             var claims = new List<Claim>
             {
+                new(ClaimTypes.NameIdentifier, userId.ToString()),
                 new(ClaimTypes.Name, firstName),
                 new(ClaimTypes.Email, email)
             };
