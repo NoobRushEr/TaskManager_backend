@@ -41,7 +41,7 @@ namespace TaskManager.Application.Services
                 return new GenericResponseDto<LoginResponseDto> { IsSuccess = false, Message = "Invalid email or password." };
             }
 
-            var token = _jwtTokenGenerator.GenerateToken(user.FirstName, user.Email, user.Roles);
+            var token = _jwtTokenGenerator.GenerateToken(user.Id, user.FirstName, user.Email, user.Roles);
             return new GenericResponseDto<LoginResponseDto> { IsSuccess = true, Message = "Login successful.", Data = new LoginResponseDto { Token = token, Expiration = DateTime.UtcNow.AddHours(1) } };
         }
 

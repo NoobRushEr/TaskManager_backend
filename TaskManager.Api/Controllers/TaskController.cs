@@ -11,7 +11,8 @@ using TaskManager.Application.Interfaces;
 
 namespace TaskManager.Api.Controllers
 {
-    [Route("[controller]")]
+    [ApiController]
+    [Route("api/[controller]")]
     public class TaskController : Controller
     {
         private readonly ITaskService _taskService;
@@ -69,7 +70,9 @@ namespace TaskManager.Api.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<TaskResponseDto>> UpdateTask(int task_id, [FromBody] UpdateTaskDto updateTaskDto)
         {
-            TaskResponseDto? updatedTask = await _taskService.UpdateTaskAsync(task_id, updateTaskDto);
+            int userId = User.GetUserId();
+            bool isAdmin = User.IsInRole("Admin") ? true : false;
+            TaskResponseDto? updatedTask = await _taskService.UpdateTaskAsync(task_id, updateTaskDto, userId, isAdmin);
             if (updatedTask == null)
             {
                 return NotFound();
@@ -110,6 +113,17 @@ namespace TaskManager.Api.Controllers
             int userId = User.GetUserId();
             IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId);
             return Ok(tasks);
+        }
+
+        [HttpPut("update-status")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> UpdateTaskStatus([FromBody] UpdateTaskStatusDto updateTaskStatusDto)
+        {
+            int userId = User.GetUserId();
+            bool isAdmin = User.IsInRole("Admin") ? true : false;
+            Console.WriteLine($"UserId: {userId}, IsAdmin: {isAdmin}, TaskId: {updateTaskStatusDto.task_id}, NewStatus: {updateTaskStatusDto.Status}");
+            var updatedTasks = await _taskService.UpdateTaskStatusAsync(updateTaskStatusDto.task_id, updateTaskStatusDto.Status, userId, isAdmin);
+            return Ok(updatedTasks);
         }
     }
 }

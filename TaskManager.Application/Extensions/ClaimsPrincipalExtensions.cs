@@ -30,6 +30,7 @@ namespace TaskManager.Application.Extensions
 
         public static bool IsInRole(this ClaimsPrincipal user, string role)
         {
+            Console.WriteLine($"Checking if {user} is in role: {role}");
             return user.IsInRole(role);
         }
     }
