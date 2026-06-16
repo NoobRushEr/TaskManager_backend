@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskManager.Application.DTOs.Task;
 using TaskManager.Application.Extensions;
 using TaskManager.Application.Interfaces;
+using TaskManager.Domain.Enums;
 
 namespace TaskManager.Api.Controllers
 {
@@ -38,7 +39,7 @@ namespace TaskManager.Api.Controllers
             IEnumerable<TaskResponseDto?> tasks = await _taskService.GetTasksPaginatedAsync(page, pageSize);
             return Ok(tasks);
         }
-        
+
 
         [HttpGet("{id}")]
         [Authorize(Policy = "AdminOnly")]
@@ -53,13 +54,13 @@ namespace TaskManager.Api.Controllers
         }
 
 
-        
+
         [HttpPost]
         [Authorize(Policy = "AdminOrUser")]
-        public async Task<ActionResult<TaskResponseDto>> CreateTask( [FromBody] CreateTaskDto createTaskDto)
+        public async Task<ActionResult<TaskResponseDto>> CreateTask([FromBody] CreateTaskDto createTaskDto)
         {
             if (createTaskDto == null) throw new ArgumentNullException(nameof(createTaskDto));
-            
+
             int userId = User.GetUserId();
 
             TaskResponseDto createdTask = await _taskService.CreateTaskAsync(userId, createTaskDto);
@@ -90,13 +91,6 @@ namespace TaskManager.Api.Controllers
             return NoContent();
         }
 
-        [HttpGet("complete")]
-        [Authorize(Policy = "AdminOrUser")]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetCompleteTasks()
-        {
-            IEnumerable<TaskResponseDto> tasks = await _taskService.GetCompletedTasksAsync();
-            return Ok(tasks);
-        }
 
         [HttpGet("user/{userId}")]
         [Authorize(Policy = "AdminOrUser")]
@@ -125,5 +119,42 @@ namespace TaskManager.Api.Controllers
             var updatedTasks = await _taskService.UpdateTaskStatusAsync(updateTaskStatusDto.task_id, updateTaskStatusDto.Status, userId, isAdmin);
             return Ok(updatedTasks);
         }
+
+        // Dashboard endpoint to get task statistics
+        [HttpGet("dashboard")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<TaskStatisticsDto>> GetTaskStatistics(){
+
+            int userId = User.GetUserId();
+            var taskStatistics = await _taskService.GetTaskStatisticsAsync(userId);
+            return Ok(taskStatistics);
+        }
+
+        [HttpGet("tasks-count")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<TaskCountByStatusDto>> GetTasksCount()
+        {
+            int userId = User.GetUserId();
+            var tasksCount = await _taskService.GetTasksCountAsync(userId);
+            return Ok(tasksCount);
+        }
+
+        [HttpGet("tasks-by-status/{status}")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetTasksByStatus([FromRoute] Status_ status)
+        {
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetTasksByStatusAsync(status);
+            return Ok(tasks);
+        }
+
+        [HttpGet("tasks-count-by-category")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult<IEnumerable<TaskCountByCategoryDto>>> GetTasksByCategory()
+        {
+            int userId = User.GetUserId();
+            IEnumerable<TaskCountByCategoryDto> tasks = await _taskService.GetTasksCountByCategoryAsync(userId);
+            return Ok(tasks);
+        }
+
     }
 }

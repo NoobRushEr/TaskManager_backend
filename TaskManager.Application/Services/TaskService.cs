@@ -168,9 +168,9 @@ public class TaskService : ITaskService
         await _taskRepository.DeleteAsync(id);
     }
 
-    public async Task<IEnumerable<TaskResponseDto>> GetCompletedTasksAsync()
+    public async Task<IEnumerable<TaskResponseDto>> GetTasksByStatusAsync(Status_ status)
     {
-        var tasks = await _taskRepository.GetCompleteTaskListAsync();
+        var tasks = await _taskRepository.GetTasksByStatusAsync(status);
         return tasks.Select(task => new TaskResponseDto
         {
             TaskId = task.Task_Id,
@@ -282,6 +282,64 @@ public class TaskService : ITaskService
                 UserId = task.UserId
             }
         ];
+    }
+
+    // Dashboard related methods
+
+    public async Task<TaskStatisticsDto> GetTaskStatisticsAsync(int userId)
+    {
+        var tasks = await _taskRepository.GetTasksByUserAsync(userId);
+
+        var totalTasks = tasks.Count();
+        TaskCountByStatusDto countByStatus = new TaskCountByStatusDto
+        {
+            Completed = tasks.Count(t => t.Status == Status_.Completed),
+            InProgress = tasks.Count(t => t.Status == Status_.InProgress),
+            NotStarted = tasks.Count(t => t.Status == Status_.NotStarted),
+            OnHold = tasks.Count(t => t.Status == Status_.OnHold)
+        };
+
+        TaskCountByPriorityDto countByPriority = new TaskCountByPriorityDto
+        {
+            High = tasks.Count(t => t.Priority == Priority_.High),
+            Medium = tasks.Count(t => t.Priority == Priority_.Medium),
+            Low = tasks.Count(t => t.Priority == Priority_.Low)
+        };
+
+
+        return new TaskStatisticsDto
+        {
+            TotalTasks = totalTasks,
+            TaskCountByStatus = countByStatus,
+            TaskCountByPriority = countByPriority,
+            TaskCountByCategory = (List<TaskCountByCategoryDto>)await _taskRepository.GetTasksCountByCategoryAsync(userId)
+        };
+    }
+
+
+    public async Task<TaskCountByStatusDto> GetTasksCountAsync(int userId)
+    {
+        var tasks = await _taskRepository.GetTasksByUserAsync(userId);
+        var countByStatus = tasks
+            .GroupBy(t => t.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionary(x => x.Status?.ToString() ?? "Unknown", x => x.Count);
+
+        return new TaskCountByStatusDto
+        {
+            Completed = countByStatus.GetValueOrDefault("Completed", 0),
+            InProgress = countByStatus.GetValueOrDefault("InProgress", 0),
+            NotStarted = countByStatus.GetValueOrDefault("NotStarted", 0),
+            OnHold = countByStatus.GetValueOrDefault("OnHold", 0)
+        };
+    }
+
+    public async Task<IEnumerable<TaskCountByCategoryDto>> GetTasksCountByCategoryAsync(int userId)
+    {
+        var tasks = await _taskRepository.GetTasksCountByCategoryAsync(userId);
+
+        return tasks;
+        
     }
 
 }
