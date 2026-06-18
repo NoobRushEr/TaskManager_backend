@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted);
+
         // ======================== Table & Column Names ========================
 
         modelBuilder.Entity<TaskItem>(entity =>
@@ -32,6 +34,8 @@ public class AppDbContext : DbContext
             entity.Property(t => t.DueDate).HasColumnName("due_date");
             entity.Property(t => t.Priority).HasColumnName("priority").HasConversion<string>();
             entity.Property(t => t.Status).HasColumnName("status").HasConversion<string>();
+            entity.Property(t => t.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
+            entity.Property(t => t.DeletedAt).HasColumnName("deleted_at");
 
             // Foreign keys
             entity.Property(t => t.UserId).HasColumnName("user_id").IsRequired();

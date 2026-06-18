@@ -37,12 +37,16 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
                     ToListAsync();
     }
 
-    public async Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId)
+    public async Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false)
     {
-        return await _context.Tasks.
+        var query = _context.Tasks.
                     Where(t => t.UserId == userId).
-                    OrderBy(t => t.DueDate).
-                    ToListAsync();
+                    OrderBy(t => t.DueDate);
+        if (includeDeleted)
+        {
+            query = (IOrderedQueryable<TaskItem>)query.IgnoreQueryFilters();
+        }
+        return await query.ToListAsync();
     }
 
 

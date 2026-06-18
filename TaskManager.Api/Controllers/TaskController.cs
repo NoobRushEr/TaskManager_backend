@@ -100,12 +100,12 @@ namespace TaskManager.Api.Controllers
             return Ok(tasks);
         }
 
-        [HttpGet("MyTasks")]
+        [HttpGet("tasks")]
         [Authorize(Policy = "AdminOrUser")]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetMyTasks()
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetMyTasks([FromQuery] bool includeDeleted = false)
         {
             int userId = User.GetUserId();
-            IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId);
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId, includeDeleted);
             return Ok(tasks);
         }
 
@@ -154,6 +154,25 @@ namespace TaskManager.Api.Controllers
             int userId = User.GetUserId();
             IEnumerable<TaskCountByCategoryDto> tasks = await _taskService.GetTasksCountByCategoryAsync(userId);
             return Ok(tasks);
+        }
+
+        //soft delete endpoint
+        [HttpDelete("soft-delete/{task_id}")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<ActionResult> SoftDeleteTask([FromRoute] int task_id)
+        {
+            int userId = User.GetUserId();
+            await _taskService.SoftDeleteTaskAsync(task_id, userId);
+            return Ok();
+        }
+
+        [HttpPut("restore/{task_id}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult> RestoreTask([FromRoute] int task_id)
+        {
+            bool isAdmin = User.IsInRole("Admin") ? true : false;
+            await _taskService.RestoreTaskAsync(task_id, isAdmin);
+            return Ok();
         }
 
     }

@@ -16,6 +16,8 @@ public class TaskItem
     public DateTime? DueDate { get; set; }
     public Priority_? Priority { get; set; }
     public Status_? Status { get; set; }
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
 
     public int UserId { get; set; }
 

@@ -204,9 +204,9 @@ public class TaskService : ITaskService
         });
     }
 
-    public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId)
+    public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId, bool includeDeleted = false)
     {
-        var tasks = await _taskRepository.GetMyTasksAsync(userId);
+        var tasks = await _taskRepository.GetMyTasksAsync(userId, includeDeleted);
         return tasks.Select(task => new TaskResponseDto
         {
             TaskId = task.Task_Id,
@@ -339,7 +339,42 @@ public class TaskService : ITaskService
         var tasks = await _taskRepository.GetTasksCountByCategoryAsync(userId);
 
         return tasks;
-        
+
+    }
+
+    public async Task SoftDeleteTaskAsync(int taskId, int userId)
+    {
+        var task = await _taskRepository.GetByIdAsync(taskId);
+        if (task == null) return;
+
+        if (task.UserId != userId)
+        {
+            throw new UnauthorizedAccessException("You are not the owner of this task.");
+        }
+
+        task.IsDeleted = true;
+        task.DeletedAt = DateTime.UtcNow;
+        await _taskRepository.UpdateAsync(task);
+    }
+
+    public async Task RestoreTaskAsync(int taskId, bool isAdmin)
+    {
+        var task = await _taskRepository.GetByIdAsync(taskId);
+        if (task == null) return;
+
+        if (!isAdmin)
+        {
+            throw new UnauthorizedAccessException("Only administrators can restore tasks.");
+        }
+
+        if (!task.IsDeleted)
+        {
+            throw new InvalidOperationException("Task is not deleted and cannot be restored.");
+        }
+
+        task.IsDeleted = false;
+        task.DeletedAt = null;
+        await _taskRepository.UpdateAsync(task);
     }
 
 }
