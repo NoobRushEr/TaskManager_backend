@@ -30,9 +30,6 @@ namespace TaskManager.Application.Validators
                 .Matches(@"[a-z]").WithMessage("Password must contain at least one lowercase letter.")
                 .Matches(@"[0-9]").WithMessage("Password must contain at least one digit.")
                 .Matches(@"[\^$*.\[\]{}()?""!@#%&/\,><':;|_~`]").WithMessage("Password must contain at least one special character.");
-
-            RuleFor(x => x.Roles)
-                .NotEmpty().WithMessage("At least one role is required.");
         }
     }
 }

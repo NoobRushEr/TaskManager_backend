@@ -23,6 +23,6 @@ public interface ITaskService
     Task<IEnumerable<TaskResponseDto>> GetTasksByStatusAsync(Status_ status);
     Task<TaskCountByStatusDto> GetTasksCountAsync(int userId);
     Task<IEnumerable<TaskCountByCategoryDto>> GetTasksCountByCategoryAsync(int userId);
-    Task SoftDeleteTaskAsync(int taskId, int userId);
+    Task SoftDeleteTaskAsync(int taskId, int userId, bool isAdmin);
     Task RestoreTaskAsync(int taskId, bool isAdmin);
 }

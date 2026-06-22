@@ -12,6 +12,5 @@ namespace TaskManager.Application.DTOs.Auth
         public string? LastName { get; set; }
         public required string Email { get; set; }
         public required string Password { get; set; }
-        public required List<Role_> Roles { get; set; }
     }
 }

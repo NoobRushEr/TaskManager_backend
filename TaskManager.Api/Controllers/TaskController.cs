@@ -162,7 +162,8 @@ namespace TaskManager.Api.Controllers
         public async Task<ActionResult> SoftDeleteTask([FromRoute] int task_id)
         {
             int userId = User.GetUserId();
-            await _taskService.SoftDeleteTaskAsync(task_id, userId);
+            bool isAdmin = User.IsInRole("Admin") ? true : false;
+            await _taskService.SoftDeleteTaskAsync(task_id, userId, isAdmin);
             return Ok();
         }
 

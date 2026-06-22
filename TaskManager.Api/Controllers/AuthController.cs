@@ -34,7 +34,7 @@ namespace TaskManager.Api.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<GenericResponseDto>> Register([FromBody] RegisterRequestDto request)
         {
-            var result = await _authService.RegisterUserAsync(request.FirstName, request.LastName, request.Email, request.Password, request.Roles);
+            var result = await _authService.RegisterUserAsync(request.FirstName, request.LastName, request.Email, request.Password);
             if (!result.IsSuccess)
             {
                 return BadRequest(result);

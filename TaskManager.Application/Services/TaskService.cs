@@ -134,10 +134,7 @@ public class TaskService : ITaskService
         existingTask.DueDate = updateTaskDto.DueDate ?? existingTask.DueDate;
         existingTask.CategoryId = updateTaskDto.CategoryId ?? existingTask.CategoryId;
 
-        if (!isAdmin && existingTask.UserId != userId)
-        {
-            throw new UnauthorizedAccessException("You are not the owner of this task Nor an administrator.");
-        }
+        await IsUserAuthorizedAsync(existingTask, userId, isAdmin);
 
         await _taskRepository.UpdateAsync(existingTask);
         return new TaskResponseDto
@@ -160,10 +157,7 @@ public class TaskService : ITaskService
         var task = await _taskRepository.GetByIdAsync(id);
         if (task == null) return;
 
-        if (!isAdmin && task.UserId != userId)
-        {
-            throw new UnauthorizedAccessException("You are not the owner of this task Nor an administrator.");
-        }
+        await IsUserAuthorizedAsync(task, userId, isAdmin);
 
         await _taskRepository.DeleteAsync(id);
     }
@@ -232,10 +226,7 @@ public class TaskService : ITaskService
 
         Console.WriteLine($"UserId: {userId}, IsAdmin: {isAdmin}, TaskId: {taskId}, NewStatus: {newStatus}, CurrentStatus: {task.Status}");
 
-        if (!isAdmin && task.UserId != userId)
-        {
-            throw new UnauthorizedAccessException("You are not the owner of this task Nor an administrator.");
-        }
+        await IsUserAuthorizedAsync(task, userId, isAdmin);
 
         Status_ currentStatus = task.Status ?? Status_.NotStarted;
         Console.WriteLine($"Current Status: {currentStatus}, New Status: {newStatus}");
@@ -342,15 +333,12 @@ public class TaskService : ITaskService
 
     }
 
-    public async Task SoftDeleteTaskAsync(int taskId, int userId)
+    public async Task SoftDeleteTaskAsync(int taskId, int userId, bool isAdmin)
     {
         var task = await _taskRepository.GetByIdAsync(taskId);
         if (task == null) return;
 
-        if (task.UserId != userId)
-        {
-            throw new UnauthorizedAccessException("You are not the owner of this task.");
-        }
+        await IsUserAuthorizedAsync(task, userId, isAdmin);
 
         task.IsDeleted = true;
         task.DeletedAt = DateTime.UtcNow;
@@ -376,5 +364,13 @@ public class TaskService : ITaskService
         task.DeletedAt = null;
         await _taskRepository.UpdateAsync(task);
     }
+
+    private async Task IsUserAuthorizedAsync(TaskItem task, int userId, bool isAdmin)
+    {
+        if(!(isAdmin || task.UserId == userId))
+        {
+            throw new UnauthorizedAccessException("You are not authorized to perform this action.");
+        }
+    } 
 
 }

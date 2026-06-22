@@ -45,7 +45,7 @@ namespace TaskManager.Application.Services
             return new GenericResponseDto<LoginResponseDto> { IsSuccess = true, Message = "Login successful.", Data = new LoginResponseDto { Token = token, Expiration = DateTime.UtcNow.AddHours(1) } };
         }
 
-        public async Task<GenericResponseDto> RegisterUserAsync(string firstName, string? lastName, string email, string password, List<Role_> roles)
+        public async Task<GenericResponseDto> RegisterUserAsync(string firstName, string? lastName, string email, string password)
         {
             var _registerValidator = _serviceProvider.GetService(typeof(IValidator<RegisterRequestDto>)) as IValidator<RegisterRequestDto>;
             var validationResult = await _registerValidator!.ValidateAsync(new RegisterRequestDto
@@ -54,7 +54,6 @@ namespace TaskManager.Application.Services
                 LastName = lastName,
                 Email = email,
                 Password = password,
-                Roles = roles
             });
 
             if (!validationResult.IsValid)
@@ -70,13 +69,15 @@ namespace TaskManager.Application.Services
             
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
+            Role_ defaultRole = Role_.User;
+
             var newUser = new User
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = email,
                 PasswordHash =  passwordHash,
-                Roles = new List<Role_>(roles)
+                Roles = new List<Role_>() { defaultRole }
             };
 
             await _userRepository.AddAsync(newUser);
