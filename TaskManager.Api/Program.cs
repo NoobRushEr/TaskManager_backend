@@ -9,6 +9,7 @@ using FluentValidation;
 using TaskManager.Application.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Caching.Memory;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,12 +40,26 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ICategoryService>(provider =>
+new CachingCategoryServiceDecorator(
+    provider.GetRequiredService<CategoryService>(),
+    provider.GetRequiredService<IMemoryCache>()
+    ));
+
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<ITaskService>(provider => 
+    new CachingTaskServiceDecorator(
+        provider.GetRequiredService<TaskService>(),
+        provider.GetRequiredService<IMemoryCache>()
+    ));
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -58,7 +73,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOrUser", policy => policy.RequireRole("Admin", "User"));
 });
 
-
+var jwtSecretKey = builder.Configuration["JWT_SECRET_KEY"]
+    ?? throw new InvalidOperationException("JWT_SECRET_KEY is not configured in the environment variables.");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -69,13 +85,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes("MY_SUPER_SECRET_KEY_12345_DEKU_MIDORIA")),
+            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(jwtSecretKey)),
             ClockSkew = TimeSpan.Zero
         };
     });
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
 
 
 // Configure the HTTP request pipeline.

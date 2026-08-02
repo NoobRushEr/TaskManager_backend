@@ -1,0 +1,27 @@
+services:
+  taskmanager.api:
+    image: taskmanager.api:latest
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "5115:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      - postgres
+  
+
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  
+volumes:
+  pgdata:

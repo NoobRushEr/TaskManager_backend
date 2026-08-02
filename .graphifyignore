@@ -1,0 +1,41 @@
+# Version Control
+.git/
+
+# Build results and compilation output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+dist/
+*.dll
+*.exe
+*.pdb
+*.suo
+*.user
+
+# Dependencies and caches
+node_modules/
+.angular/
+packages/
+.idea/
+.vscode/
+
+# Graphify output
+graphify-out/
+
+# Environment files and configuration secrets
+.env
+.env.*
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/secrets.json
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db

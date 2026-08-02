@@ -1,21 +1,42 @@
 # TaskManager
 
-TaskManager is a .NET 8 Web API solution organized with a clean layered structure:
+TaskManager is a full-stack task management application with a .NET 8 Web API, PostgreSQL persistence, JWT authentication, and an Angular 19 frontend.
 
-- `TaskManager.Api`: API host (ASP.NET Core, Swagger, DI setup)
-- `TaskManager.Application`: application/service layer (currently scaffolded)
-- `TaskManager.Domain`: domain entities and enums
-- `TaskManager.Infrastructure`: EF Core, PostgreSQL provider, DbContext, migrations
+The backend is organized with a layered architecture:
+
+- `TaskManager.Api`: ASP.NET Core API host, controllers, Swagger, CORS, JWT authentication, and dependency injection.
+- `TaskManager.Application`: DTOs, service interfaces, application services, validation, and user-claim helpers.
+- `TaskManager.Domain`: core entities and enums.
+- `TaskManager.Infrastructure`: Entity Framework Core `DbContext`, repositories, PostgreSQL mappings, JWT token generation, and migrations.
+- `TaskManager.Frontend`: Angular client for login, registration, protected task listing, auth guard, JWT interceptor, and API services.
+
+## Features
+
+- User registration and login with BCrypt password hashing.
+- JWT bearer authentication with role claims.
+- User roles: `User` and `Admin`.
+- Task CRUD with owner/admin authorization checks.
+- Task status workflow validation.
+- Soft delete and admin-only restore for tasks.
+- Dashboard/task statistics by status, priority, and category.
+- Category and user management endpoints.
+- Angular login/register screens and protected task list route.
+- Swagger UI in development.
 
 ## Tech Stack
 
 - .NET 8
-- ASP.NET Core Web API (Minimal hosting model)
+- ASP.NET Core Web API
 - Entity Framework Core 8
-- PostgreSQL (`Npgsql.EntityFrameworkCore.PostgreSQL`)
+- PostgreSQL via `Npgsql.EntityFrameworkCore.PostgreSQL`
+- FluentValidation
+- BCrypt.Net
+- JWT bearer authentication
 - Swagger / OpenAPI
+- Angular 19
+- RxJS
 
-## Solution Structure
+## Repository Structure
 
 ```text
 TaskManager.sln
@@ -23,18 +44,46 @@ TaskManager.Api/
 TaskManager.Application/
 TaskManager.Domain/
 TaskManager.Infrastructure/
+TaskManager.Frontend/
 ```
 
-## Domain Model (Current)
+## Domain Model
 
-- `User`
-  - `Id`, `FirstName`, `LastName`, `Email`, `PasswordHash`, `Role` (list of `Role_`)
-- `Task`
-  - `Task_Id`, `Title`, `Description`, `CreatedAt`, `CompletedAt`, `DueDate`, `Priority`, `Status`, `UserId`, `CategoryId`
-- `Category`
-  - `Category_Id`, `CategoryName`, `UserId`
+`User`
+
+- `Id`
+- `FirstName`
+- `LastName`
+- `Email`
+- `PasswordHash`
+- `Roles`
+- `Tasks`
+- `Categories`
+
+`TaskItem`
+
+- `Task_Id`
+- `Title`
+- `Description`
+- `CreatedAt`
+- `CompletedAt`
+- `DueDate`
+- `Priority`
+- `Status`
+- `IsDeleted`
+- `DeletedAt`
+- `UserId`
+- `CategoryId`
+
+`Category`
+
+- `CategoryId`
+- `CategoryName`
+- `UserId`
+- `Tasks`
 
 Enums:
+
 - `Priority_`: `Low`, `Medium`, `High`
 - `Status_`: `NotStarted`, `InProgress`, `Completed`, `OnHold`
 - `Role_`: `User`, `Admin`
@@ -42,23 +91,17 @@ Enums:
 ## Prerequisites
 
 - .NET SDK 8.x
-- PostgreSQL running locally or remotely
-- Optional (for migrations): EF Core CLI tools
-
-Install EF CLI tools once:
+- Node.js and npm
+- PostgreSQL
+- Optional EF Core CLI:
 
 ```bash
 dotnet tool install --global dotnet-ef
 ```
 
-## Configuration
+## Backend Configuration
 
-Connection string is read from:
-
-- `TaskManager.Api/appsettings.json`
-- key: `ConnectionStrings:DefaultConnection`
-
-Example format:
+The API reads the database connection string from `TaskManager.Api/appsettings.json`:
 
 ```json
 "ConnectionStrings": {
@@ -66,22 +109,18 @@ Example format:
 }
 ```
 
-For local development, prefer environment variables or user-secrets instead of storing credentials directly in tracked files.
+For local development, use user secrets or environment variables for real credentials instead of committing passwords.
 
-## Restore and Build
+The API development launch profiles are:
 
-From solution root:
+- HTTP: `http://localhost:5115`
+- HTTPS: `https://localhost:7285`
 
-```bash
-dotnet restore
-dotnet build
-```
+Swagger is available in development at `/swagger`.
 
-## Database Migrations
+## Database Setup
 
-A migration already exists in `TaskManager.Infrastructure/Migrations` (`InitialCreate`).
-
-Apply migrations to database from solution root:
+From the solution root, apply the existing migrations:
 
 ```bash
 dotnet ef database update \
@@ -97,18 +136,191 @@ dotnet ef migrations add <MigrationName> \
   --startup-project TaskManager.Api
 ```
 
-## Run the API
+## Run the Backend
 
-From solution root:
+From the solution root:
 
 ```bash
+dotnet restore
+dotnet build
 dotnet run --project TaskManager.Api
 ```
 
-Swagger UI is available in development mode at:
+## Run the Frontend
 
-- `https://localhost:<port>/swagger`
+The Angular app expects the API at `http://localhost:5115/api`, configured in:
 
-## Current API Status
+```text
+TaskManager.Frontend/src/environments/environment.ts
+```
 
-Infrastructure and database wiring are configured in `Program.cs`, but endpoint mappings are not yet added. The next step is to define feature endpoints (for example: auth, users, tasks, categories).
+From the frontend project:
+
+```bash
+cd TaskManager.Frontend
+npm install
+npm start
+```
+
+The frontend runs at:
+
+```text
+http://localhost:4200
+```
+
+The API CORS policy currently allows `http://localhost:4200`.
+
+## API Overview
+
+Base URL:
+
+```text
+http://localhost:5115/api
+```
+
+### Auth
+
+```text
+POST /Auth/register
+POST /Auth/login
+```
+
+Register request:
+
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+
+Login request:
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "password123"
+}
+```
+
+Successful login returns a JWT token and expiration. Send protected requests with:
+
+```text
+Authorization: Bearer <token>
+```
+
+### Tasks
+
+Most task endpoints require `Admin` or `User`. Admin-only endpoints are marked below.
+
+```text
+GET    /Task                         Admin only
+GET    /Task/paged?page=1&pageSize=10 Admin only
+GET    /Task/{id}                    Admin only
+POST   /Task
+PUT    /Task/{task_id}
+DELETE /Task/{task_id}
+GET    /Task/user/{userId}
+GET    /Task/tasks?includeDeleted=false
+PUT    /Task/update-status
+GET    /Task/dashboard
+GET    /Task/tasks-count
+GET    /Task/tasks-by-status/{status}
+GET    /Task/tasks-count-by-category
+DELETE /Task/soft-delete/{task_id}
+PUT    /Task/restore/{task_id}       Admin only
+```
+
+Create task request:
+
+```json
+{
+  "title": "Finish README",
+  "description": "Update project documentation",
+  "dueDate": "2026-06-30T00:00:00Z",
+  "priority": "High",
+  "status": "NotStarted",
+  "categoryId": 1
+}
+```
+
+Task status values:
+
+```text
+NotStarted, InProgress, Completed, OnHold
+```
+
+Task priority values:
+
+```text
+Low, Medium, High
+```
+
+### Categories
+
+These endpoints are currently public in the API code.
+
+```text
+GET    /Category
+GET    /Category/{id}
+POST   /Category
+PUT    /Category/{id}
+DELETE /Category/{id}
+GET    /Category/{categoryId}/tasks
+```
+
+Create category request:
+
+```json
+{
+  "categoryName": "Work",
+  "userId": 1
+}
+```
+
+### Users
+
+These endpoints are currently public in the API code.
+
+```text
+GET    /User
+GET    /User/{id}
+PUT    /User/{id}
+DELETE /User/{id}
+GET    /User/{id}/categories
+GET    /User/{user_id}/task/{taskId}
+```
+
+## Frontend Routes
+
+```text
+/login
+/register
+/tasks      Protected by authGuard
+```
+
+The frontend stores the JWT token and current user response in `localStorage`. The JWT interceptor attaches the token to API requests.
+
+## Tests
+
+Backend:
+
+```bash
+dotnet build
+```
+
+Frontend:
+
+```bash
+cd TaskManager.Frontend
+npm test
+```
+
+## Current Notes
+
+- The JWT signing key is hard-coded in the API and infrastructure code. Move it to configuration or user secrets before production use.
+- The checked-in `appsettings.json` contains a local PostgreSQL password. Replace it locally and avoid committing real credentials.
+- `CategoryController` and `UserController` do not currently require authorization attributes.
+- Soft-deleted tasks are filtered globally by EF Core; `GET /Task/tasks?includeDeleted=true` explicitly ignores that filter for the current user's task list.
