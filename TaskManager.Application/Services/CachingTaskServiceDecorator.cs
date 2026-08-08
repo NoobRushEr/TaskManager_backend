@@ -178,6 +178,11 @@ namespace TaskManager.Application.Services
         }
 
 
+        public async Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default)
+        {
+            await _innerTaskService.PurgeSoftDeletedTasksAsync(cancellationToken);
+        }
+
         private void InvalidateUserCache(int userId)
         {
             _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:true");

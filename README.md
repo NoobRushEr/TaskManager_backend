@@ -293,6 +293,55 @@ GET    /User/{id}/categories
 GET    /User/{user_id}/task/{taskId}
 ```
 
+## Caching Architecture (Cache-Aside Decorators)
+
+To optimize read performance and enforce separation of concerns, the application implements the **Cache-Aside Pattern** at the Service Layer using the **Decorator Pattern**:
+
+- **Task Caching (`CachingTaskServiceDecorator`)**:
+  - Caches task lookups by ID and user task lists.
+  - Automatically evicts cached queries when tasks are created, updated, status-modified, deleted, or soft-deleted.
+  - Leaves dashboard/analytical queries un-cached for custom extension.
+- **Category Caching (`CachingCategoryServiceDecorator`)**:
+  - Caches category lookups by ID and the complete category lists.
+  - Automatically invalidates category lists and individual entries on write operations.
+
+### Configuration
+Caching is powered by ASP.NET Core's built-in `IMemoryCache`. Services are registered in `Program.cs` as follows:
+```csharp
+builder.Services.AddMemoryCache();
+
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<ICategoryService>(provider => 
+    new CachingCategoryServiceDecorator(
+        provider.GetRequiredService<CategoryService>(),
+        provider.GetRequiredService<IMemoryCache>()
+    ));
+
+builder.Services.AddScoped<TaskService>();
+builder.Services.AddScoped<ITaskService>(provider => 
+    new CachingTaskServiceDecorator(
+        provider.GetRequiredService<TaskService>(),
+        provider.GetRequiredService<IMemoryCache>()
+    ));
+```
+
+## Background Processing (Soft-Delete Purge)
+
+To maintain database efficiency and clean up storage, the application implements a background cleanup mechanism:
+
+- **Soft-Delete Retention**: Deleted tasks are flagged as `IsDeleted = true` and keep a timestamp of when they were deleted (`DeletedAt`).
+- **Purge Worker (`SoftDeletePurgeWorker`)**: 
+  - Runs periodically in the background as a hosted `BackgroundService`.
+  - Implements the modern, thread-safe, drift-free `.NET` `PeriodicTimer` for scheduled execution intervals (e.g. 24 hours).
+  - Automatically queries and permanently purges soft-deleted tasks that have exceeded a **30-day retention period**.
+  - Safely wraps operations in custom try-catch scopes to prevent background database connection errors from crashing the main API host.
+
+### Configuration
+The background worker is registered as a hosted service in `Program.cs`:
+```csharp
+builder.Services.AddHostedService<SoftDeletePurgeWorker>();
+```
+
 ## Frontend Routes
 
 ```text

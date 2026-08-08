@@ -10,4 +10,5 @@ public interface ITaskRepository : IRepository<TaskItem>
     Task<IEnumerable<TaskItem>> GetTasksPaginatedAsync(int page, int pageSize);
     Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false);
     Task<IEnumerable<TaskCountByCategoryDto>> GetTasksCountByCategoryAsync(int userId);
+    Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default);
 }

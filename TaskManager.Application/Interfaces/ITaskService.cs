@@ -25,4 +25,6 @@ public interface ITaskService
     Task<IEnumerable<TaskCountByCategoryDto>> GetTasksCountByCategoryAsync(int userId);
     Task SoftDeleteTaskAsync(int taskId, int userId, bool isAdmin);
     Task RestoreTaskAsync(int taskId, bool isAdmin);
+
+    Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default);
 }

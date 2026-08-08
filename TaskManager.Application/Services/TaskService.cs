@@ -373,4 +373,9 @@ public class TaskService : ITaskService
         }
     } 
 
+    public async Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default)
+    {
+        await _taskRepository.PurgeSoftDeletedTasksAsync(cancellationToken);
+    }
+
 }

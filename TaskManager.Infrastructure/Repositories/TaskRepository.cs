@@ -65,4 +65,21 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
             .ToListAsync();
     }
 
+    public async Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default)
+    {
+        // Only purge tasks that have been soft-deleted for more than 30 days
+        var cutoffDate = DateTime.UtcNow.AddDays(-30);
+
+        var softDeletedTasks = await _context.Tasks
+            .IgnoreQueryFilters()
+            .Where(t => t.IsDeleted && t.DeletedAt < cutoffDate)
+            .ToListAsync(cancellationToken);
+
+        if (softDeletedTasks.Any())
+        {
+            _context.Tasks.RemoveRange(softDeletedTasks);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
 }
