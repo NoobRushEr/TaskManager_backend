@@ -120,9 +120,10 @@ Swagger is available in development at `/swagger`.
 
 ## Database Setup
 
-From the solution root, apply the existing migrations:
+From the solution root, apply the existing migrations. Note that EF Core commands run outside Docker need `JWT_SECRET_KEY` and the correct database port (e.g. port `5433` as defined in `docker-compose.yml` if using the Docker database):
 
 ```bash
+JWT_SECRET_KEY=SomeTemporarySecretKeyForDesignTime ConnectionStrings__DefaultConnection="Host=127.0.0.1;Port=5433;Database=TaskManager;Username=postgres;Password=749382" \
 dotnet ef database update \
   --project TaskManager.Infrastructure \
   --startup-project TaskManager.Api
@@ -131,6 +132,7 @@ dotnet ef database update \
 Create a new migration:
 
 ```bash
+JWT_SECRET_KEY=SomeTemporarySecretKeyForDesignTime ConnectionStrings__DefaultConnection="Host=127.0.0.1;Port=5433;Database=TaskManager;Username=postgres;Password=749382" \
 dotnet ef migrations add <MigrationName> \
   --project TaskManager.Infrastructure \
   --startup-project TaskManager.Api
@@ -337,7 +339,7 @@ To maintain database efficiency and clean up storage, the application implements
   - **Task Archival (High Performance Batching)**:
     - Automatically archives completed tasks older than 30 days (`IsArchived = true`, `ArchivedAt = DateTime.UtcNow`).
     - Uses EF Core 7+ `ExecuteUpdateAsync` in a batched chunking loop (1,000 tasks per batch with a 100ms cooldown) to execute directly in the database without entity tracking, preventing database lock contention and transaction log bloating.
-- **Read-Only Policy**: Archived tasks are hidden by default via global EF Core query filters (which can be bypassed in `GET /tasks` by passing `includeArchived=true`). Any write operations (updates, status updates, deletes) on archived tasks are blocked at the service layer.
+- **Read-Only Policy**: Archived tasks are hidden by default via global EF Core query filters (which can be bypassed in `GET /api/Task/tasks` by passing `includeArchived=true`). Any write operations (updates, status updates, deletes) on archived tasks are blocked at the service layer.
 
 ### Configuration
 The background worker is registered as a hosted service in `Program.cs`:
