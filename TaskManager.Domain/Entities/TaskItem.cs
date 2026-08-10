@@ -18,6 +18,8 @@ public class TaskItem
     public Status_? Status { get; set; }
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
+    public bool IsArchived { get; set; } = false;
+    public DateTime? ArchivedAt { get; set; }
 
     public int UserId { get; set; }
 

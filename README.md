@@ -325,21 +325,24 @@ builder.Services.AddScoped<ITaskService>(provider =>
     ));
 ```
 
-## Background Processing (Soft-Delete Purge)
+## Background Processing (Task Maintenance & Archival)
 
-To maintain database efficiency and clean up storage, the application implements a background cleanup mechanism:
+To maintain database efficiency and clean up storage, the application implements a background cleanup and archival mechanism:
 
 - **Soft-Delete Retention**: Deleted tasks are flagged as `IsDeleted = true` and keep a timestamp of when they were deleted (`DeletedAt`).
-- **Purge Worker (`SoftDeletePurgeWorker`)**: 
+- **Maintenance Worker (`TaskMaintenanceWorker`)**: 
   - Runs periodically in the background as a hosted `BackgroundService`.
   - Implements the modern, thread-safe, drift-free `.NET` `PeriodicTimer` for scheduled execution intervals (e.g. 24 hours).
-  - Automatically queries and permanently purges soft-deleted tasks that have exceeded a **30-day retention period**.
-  - Safely wraps operations in custom try-catch scopes to prevent background database connection errors from crashing the main API host.
+  - **Soft-Delete Purging**: Automatically queries and permanently purges soft-deleted tasks that have exceeded a **30-day retention period**.
+  - **Task Archival (High Performance Batching)**:
+    - Automatically archives completed tasks older than 30 days (`IsArchived = true`, `ArchivedAt = DateTime.UtcNow`).
+    - Uses EF Core 7+ `ExecuteUpdateAsync` in a batched chunking loop (1,000 tasks per batch with a 100ms cooldown) to execute directly in the database without entity tracking, preventing database lock contention and transaction log bloating.
+- **Read-Only Policy**: Archived tasks are hidden by default via global EF Core query filters (which can be bypassed in `GET /tasks` by passing `includeArchived=true`). Any write operations (updates, status updates, deletes) on archived tasks are blocked at the service layer.
 
 ### Configuration
 The background worker is registered as a hosted service in `Program.cs`:
 ```csharp
-builder.Services.AddHostedService<SoftDeletePurgeWorker>();
+builder.Services.AddHostedService<TaskMaintenanceWorker>();
 ```
 
 ## Frontend Routes

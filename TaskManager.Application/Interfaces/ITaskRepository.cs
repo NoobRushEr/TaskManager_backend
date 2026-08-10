@@ -8,7 +8,8 @@ public interface ITaskRepository : IRepository<TaskItem>
     Task<IEnumerable<TaskItem>> GetTasksByStatusAsync(Status_ status);
     Task<IEnumerable<TaskItem>> GetTasksByUserAsync(int userId);
     Task<IEnumerable<TaskItem>> GetTasksPaginatedAsync(int page, int pageSize);
-    Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false);
+    Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false, bool includeArchived = false);
     Task<IEnumerable<TaskCountByCategoryDto>> GetTasksCountByCategoryAsync(int userId);
     Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default);
+    Task ArchiveCompletedTasksAsync(CancellationToken cancellationToken = default);
 }

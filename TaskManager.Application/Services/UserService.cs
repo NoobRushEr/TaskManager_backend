@@ -114,7 +114,9 @@ namespace TaskManager.Application.Services
                 TaskDescription = task.Description,
                 TaskDueDate = task.DueDate,
                 TaskCreatedAt = task.CreatedAt,
-                CategoryName = category.CategoryName
+                CategoryName = category.CategoryName,
+                IsArchived = task.IsArchived,
+                ArchivedAt = task.ArchivedAt
             };
         }
     }

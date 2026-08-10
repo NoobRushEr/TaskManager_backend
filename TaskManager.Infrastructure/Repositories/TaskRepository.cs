@@ -37,16 +37,25 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
                     ToListAsync();
     }
 
-    public async Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false)
+    public async Task<IEnumerable<TaskItem>> GetMyTasksAsync(int userId, bool includeDeleted = false, bool includeArchived = false)
     {
-        var query = _context.Tasks.
-                    Where(t => t.UserId == userId).
-                    OrderBy(t => t.DueDate);
-        if (includeDeleted)
+        IQueryable<TaskItem> query = _context.Tasks.Where(t => t.UserId == userId);
+
+        if (includeDeleted || includeArchived)
         {
-            query = (IOrderedQueryable<TaskItem>)query.IgnoreQueryFilters();
+            query = query.IgnoreQueryFilters();
+
+            if (!includeDeleted)
+            {
+                query = query.Where(t => !t.IsDeleted);
+            }
+            if (!includeArchived)
+            {
+                query = query.Where(t => !t.IsArchived);
+            }
         }
-        return await query.ToListAsync();
+
+        return await query.OrderBy(t => t.DueDate).ToListAsync();
     }
 
 
@@ -82,4 +91,25 @@ public class TaskRepository : Repository<TaskItem>, ITaskRepository
         }
     }
 
+    public async Task ArchiveCompletedTasksAsync(CancellationToken cancellationToken = default)
+    {
+        var cutoffDate = DateTime.UtcNow.AddDays(-30);
+        int rowsAffected;
+        do
+        {
+            // ExecuteUpdateAsync updates directly in DB, bypassing tracking
+            rowsAffected = await _context.Tasks
+                .IgnoreQueryFilters()
+                .Where(t => t.Status == Status_.Completed && !t.IsArchived && t.CompletedAt < cutoffDate)
+                .Take(1000)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.IsArchived, true)
+                    .SetProperty(t => t.ArchivedAt, DateTime.UtcNow), cancellationToken);
+
+            if (rowsAffected > 0)
+            {
+                await Task.Delay(100, cancellationToken); // Breather window for locking
+            }
+        } while (rowsAffected > 0);
+    }
 }

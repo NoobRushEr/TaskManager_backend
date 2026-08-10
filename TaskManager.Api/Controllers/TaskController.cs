@@ -102,10 +102,12 @@ namespace TaskManager.Api.Controllers
 
         [HttpGet("tasks")]
         [Authorize(Policy = "AdminOrUser")]
-        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetMyTasks([FromQuery] bool includeDeleted = false)
+        public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetMyTasks(
+            [FromQuery] bool includeDeleted = false,
+            [FromQuery] bool includeArchived = false)
         {
             int userId = User.GetUserId();
-            IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId, includeDeleted);
+            IEnumerable<TaskResponseDto> tasks = await _taskService.GetMyTasksAsync(userId, includeDeleted, includeArchived);
             return Ok(tasks);
         }
 

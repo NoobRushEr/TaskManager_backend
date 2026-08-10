@@ -19,7 +19,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted);
+        modelBuilder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted && !t.IsArchived);
 
         // ======================== Table & Column Names ========================
 
@@ -36,6 +36,8 @@ public class AppDbContext : DbContext
             entity.Property(t => t.Status).HasColumnName("status").HasConversion<string>();
             entity.Property(t => t.IsDeleted).HasColumnName("is_deleted").HasDefaultValue(false);
             entity.Property(t => t.DeletedAt).HasColumnName("deleted_at");
+            entity.Property(t => t.IsArchived).HasColumnName("is_archived").HasDefaultValue(false);
+            entity.Property(t => t.ArchivedAt).HasColumnName("archived_at");
 
             // Foreign keys
             entity.Property(t => t.UserId).HasColumnName("user_id").IsRequired();

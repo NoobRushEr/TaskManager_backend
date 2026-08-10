@@ -14,7 +14,7 @@ public interface ITaskService
     Task DeleteTaskAsync(int id, int userId, bool isAdmin);
     
     Task<IEnumerable<TaskResponseDto>> GetTasksByUserIdAsync(int userId);
-    Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId, bool includeDeleted = false);
+    Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId, bool includeDeleted = false, bool includeArchived = false);
 
     Task<IEnumerable<TaskResponseDto>> UpdateTaskStatusAsync(int taskId, Status_ newStatus, int userId, bool isAdmin);
     
@@ -27,4 +27,5 @@ public interface ITaskService
     Task RestoreTaskAsync(int taskId, bool isAdmin);
 
     Task PurgeSoftDeletedTasksAsync(CancellationToken cancellationToken = default);
+    Task ArchiveCompletedTasksAsync(CancellationToken cancellationToken = default);
 }

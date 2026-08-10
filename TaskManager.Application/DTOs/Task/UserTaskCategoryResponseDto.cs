@@ -15,5 +15,7 @@ namespace TaskManager.Application.DTOs.Task
         public DateTime? TaskDueDate { get; set; }
         public required DateTime TaskCreatedAt { get; set; }
         public required string CategoryName { get; set; }
+        public bool IsArchived { get; set; }
+        public DateTime? ArchivedAt { get; set; }
     }
 }

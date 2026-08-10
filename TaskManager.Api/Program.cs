@@ -42,7 +42,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddMemoryCache();
 
-builder.Services.AddHostedService<SoftDeletePurgeWorker>();
+builder.Services.AddHostedService<TaskMaintenanceWorker>();
 
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

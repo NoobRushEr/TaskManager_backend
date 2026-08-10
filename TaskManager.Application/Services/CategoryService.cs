@@ -94,7 +94,9 @@ namespace TaskManager.Application.Services
                 Priority = task.Priority?.ToString(),
                 Status = task.Status?.ToString(),
                 CategoryId = task.CategoryId,
-                UserId = task.UserId
+                UserId = task.UserId,
+                IsArchived = task.IsArchived,
+                ArchivedAt = task.ArchivedAt
             });
         }
     }

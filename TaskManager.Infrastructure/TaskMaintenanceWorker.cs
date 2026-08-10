@@ -8,14 +8,14 @@ using TaskManager.Application.Interfaces;
 
 namespace TaskManager.Infrastructure
 {
-    public class SoftDeletePurgeWorker : BackgroundService
+    public class TaskMaintenanceWorker : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<SoftDeletePurgeWorker> _logger;
+        private readonly ILogger<TaskMaintenanceWorker> _logger;
 
-        public SoftDeletePurgeWorker(
+        public TaskMaintenanceWorker(
             IServiceProvider serviceProvider,
-            ILogger<SoftDeletePurgeWorker> logger)
+            ILogger<TaskMaintenanceWorker> logger)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -23,10 +23,10 @@ namespace TaskManager.Infrastructure
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("SoftDeletePurgeWorker initialized.");
+            _logger.LogInformation("TaskMaintenanceWorker initialized.");
 
-            // Perform an initial purge on startup immediately
-            await TriggerPurgeAsync(stoppingToken);
+            // Perform initial maintenance tasks immediately on startup
+            await RunMaintenanceTasksAsync(stoppingToken);
 
             // PeriodicTimer prevents scheduling drift and is thread-safe
             using var timer = new PeriodicTimer(TimeSpan.FromHours(24));
@@ -35,32 +35,39 @@ namespace TaskManager.Infrastructure
             {
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
-                    await TriggerPurgeAsync(stoppingToken);
+                    await RunMaintenanceTasksAsync(stoppingToken);
                 }
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("SoftDeletePurgeWorker is stopping due to cancellation.");
+                _logger.LogInformation("TaskMaintenanceWorker is stopping due to cancellation.");
             }
         }
 
-        private async Task TriggerPurgeAsync(CancellationToken cancellationToken)
+        private async Task RunMaintenanceTasksAsync(CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Starting soft-deleted tasks purge operation...");
+                _logger.LogInformation("Starting periodic task maintenance operations...");
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var taskService = scope.ServiceProvider.GetRequiredService<ITaskService>();
+
+                    // 1. Purge soft-deleted tasks older than 30 days
+                    _logger.LogInformation("Purging soft-deleted tasks...");
                     await taskService.PurgeSoftDeletedTasksAsync(cancellationToken);
+
+                    // 2. Archive completed tasks older than 30 days
+                    _logger.LogInformation("Archiving completed tasks...");
+                    await taskService.ArchiveCompletedTasksAsync(cancellationToken);
                 }
 
-                _logger.LogInformation("Soft-deleted tasks purge operation completed successfully.");
+                _logger.LogInformation("Periodic task maintenance operations completed successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while purging soft-deleted tasks.");
+                _logger.LogError(ex, "An error occurred during periodic task maintenance.");
             }
         }
     }

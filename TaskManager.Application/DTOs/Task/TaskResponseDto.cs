@@ -14,4 +14,6 @@ public class TaskResponseDto
     public string? Status { get; set; }
     public int? CategoryId { get; set; }
     public int UserId { get; set; }
+    public bool IsArchived { get; set; }
+    public DateTime? ArchivedAt { get; set; }
 }

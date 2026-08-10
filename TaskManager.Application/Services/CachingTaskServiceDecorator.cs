@@ -44,13 +44,13 @@ namespace TaskManager.Application.Services
             return task;
         }
 
-        public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId, bool includeDeleted = false)
+        public async Task<IEnumerable<TaskResponseDto>> GetMyTasksAsync(int userId, bool includeDeleted = false, bool includeArchived = false)
         {
-            string cacheKey = $"{CacheKeyPrefix}:user:{userId}:deleted:{includeDeleted}";
+            string cacheKey = $"{CacheKeyPrefix}:user:{userId}:deleted:{includeDeleted}:archived:{includeArchived}";
             if (!_cache.TryGetValue(cacheKey, out IEnumerable<TaskResponseDto>? tasks))
             {
                 // Cache miss: delegate list retrieval and cache
-                tasks = await _innerTaskService.GetMyTasksAsync(userId, includeDeleted);
+                tasks = await _innerTaskService.GetMyTasksAsync(userId, includeDeleted, includeArchived);
                 _cache.Set(cacheKey, tasks, CacheDuration);
             }
             return tasks!;
@@ -183,10 +183,17 @@ namespace TaskManager.Application.Services
             await _innerTaskService.PurgeSoftDeletedTasksAsync(cancellationToken);
         }
 
+        public async Task ArchiveCompletedTasksAsync(CancellationToken cancellationToken = default)
+        {
+            await _innerTaskService.ArchiveCompletedTasksAsync(cancellationToken);
+        }
+
         private void InvalidateUserCache(int userId)
         {
-            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:true");
-            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:false");
+            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:true:archived:true");
+            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:true:archived:false");
+            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:false:archived:true");
+            _cache.Remove($"{CacheKeyPrefix}:user:{userId}:deleted:false:archived:false");
         }
     }
 }
