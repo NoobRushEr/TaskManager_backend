@@ -10,6 +10,8 @@ using TaskManager.Application.Validators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Caching.Memory;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -92,6 +94,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddHealthChecks()
+.AddNpgSql(connectionString!)
+.AddDbContextCheck<AppDbContext>();
 
 var app = builder.Build();
 
@@ -111,6 +116,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AngularDev");
 
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
 app.UseAuthentication();
 
 app.UseHttpsRedirection();
@@ -118,6 +128,8 @@ app.UseRouting();
 
 app.UseAuthorization();
 app.MapControllers();
+
+
 
 app.Run();
 

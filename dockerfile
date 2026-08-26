@@ -1,13 +1,12 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
-COPY TaskManager.sln ./
 COPY TaskManager.Domain/*.csproj ./TaskManager.Domain/
 COPY TaskManager.Application/*.csproj ./TaskManager.Application/
 COPY TaskManager.Infrastructure/*.csproj ./TaskManager.Infrastructure/
 COPY TaskManager.Api/*.csproj ./TaskManager.Api/
 
-RUN dotnet restore TaskManager.sln
+RUN dotnet restore TaskManager.Api/TaskManager.Api.csproj
 
 COPY TaskManager.Domain/. ./TaskManager.Domain/
 COPY TaskManager.Application/. ./TaskManager.Application/
